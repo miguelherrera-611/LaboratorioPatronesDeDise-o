@@ -9,10 +9,11 @@ import observer.ConductorObserver;
 import observer.UIObserver;
 import state.ViajeContexto;
 import model.Viaje;
+import java.util.Scanner;
 
-// Esta clase conecta todos los patrones juntos
-// Es el "director de orquesta" del flujo completo del sistema
 public class App {
+
+    private Scanner scanner = new Scanner(System.in);
 
     public void ejecutarFlujoCompleto() {
 
@@ -21,75 +22,141 @@ public class App {
         System.out.println("============================================\n");
 
         // --------------------------------------------------
-        // PASO 1: Singleton — obtener la única instancia del sistema
+        // PASO 1: Singleton
         // --------------------------------------------------
         RideApp sistema = RideApp.getInstance();
-        sistema.recibirSolicitud("Carlos", "premium");
 
+        // --------------------------------------------------
+        // PASO 2: Datos del pasajero y tipo de viaje
+        // --------------------------------------------------
+        System.out.print("Ingresa el nombre del pasajero: ");
+        String nombrePasajero = scanner.nextLine();
+
+        System.out.println("Tipos de viaje disponibles: economico, premium, moto, compartido");
+        System.out.print("Selecciona el tipo de viaje: ");
+        String tipoViaje = scanner.nextLine();
+
+        sistema.recibirSolicitud(nombrePasajero, tipoViaje);
         System.out.println();
 
         // --------------------------------------------------
-        // PASO 2: Factory — crear el tipo de viaje
+        // PASO 3: Factory
         // --------------------------------------------------
-        Viaje viaje = ViajeFactory.crearViaje("premium");
-
+        Viaje viaje;
+        try {
+            viaje = ViajeFactory.crearViaje(tipoViaje);
+        } catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+            System.out.println("Tipo inválido. Se usará económico por defecto.");
+            viaje = ViajeFactory.crearViaje("economico");
+        }
         System.out.println();
 
         // --------------------------------------------------
-        // PASO 3: Builder — configurar las opciones del viaje
+        // PASO 4: Builder — opciones del viaje
         // --------------------------------------------------
+        System.out.println("--- Configura las opciones del viaje ---");
+        boolean wifi = pedirOpcion("¿Desea Wifi? (s/n): ");
+        boolean ac = pedirOpcion("¿Desea Aire Acondicionado? (s/n): ");
+        boolean music = pedirOpcion("¿Desea Música? (s/n): ");
+        boolean equip = pedirOpcion("¿Lleva Equipaje? (s/n): ");
+        boolean masco = pedirOpcion("¿Viaja con Mascota? (s/n): ");
+
+        System.out.print("¿Cuántos pasajeros? (1-4): ");
+        int pasajeros = 1;
+        try {
+            pasajeros = Integer.parseInt(scanner.nextLine().trim());
+        } catch (NumberFormatException e) {
+            System.out.println("Valor inválido. Se usará 1 pasajero.");
+        }
+
         viaje = new ViajeBuilder(viaje)
-                .setWifi(true)
-                .setAireAcondicionado(true)
-                .setEquipaje(false)
-                .setMascota(false)
-                .setMusica(true)
-                .setNumeroPasajeros(1)
+                .setWifi(wifi)
+                .setAireAcondicionado(ac)
+                .setMusica(music)
+                .setEquipaje(equip)
+                .setMascota(masco)
+                .setNumeroPasajeros(pasajeros)
                 .build();
 
         System.out.println();
 
         // --------------------------------------------------
-        // PASO 4: State + Observer — crear el contexto del viaje y suscribir observadores
+        // PASO 5: Nombre del conductor
         // --------------------------------------------------
-        ViajeContexto contexto = new ViajeContexto(); // Estado inicial: Solicitado
+        System.out.print("Ingresa el nombre del conductor asignado: ");
+        String nombreConductor = scanner.nextLine();
 
-        // Observer: suscribimos a quienes quieren ser notificados
-        contexto.agregarObservador(new PasajeroObserver("Carlos"));
-        contexto.agregarObservador(new ConductorObserver("Juan"));
+        // --------------------------------------------------
+        // PASO 6: State + Observer
+        // --------------------------------------------------
+        ViajeContexto contexto = new ViajeContexto();
+
+        contexto.agregarObservador(new PasajeroObserver(nombrePasajero));
+        contexto.agregarObservador(new ConductorObserver(nombreConductor));
         contexto.agregarObservador(new UIObserver());
 
         System.out.println();
 
         // --------------------------------------------------
-        // PASO 5: Mediator — asignar conductor (cambia estado a Asignado + notifica)
+        // PASO 7: Mediator
         // --------------------------------------------------
         CentralViajesMediator mediator = new CentralViajesMediator();
-        mediator.asignarConductor("Carlos", "Juan", contexto);
+        mediator.asignarConductor(nombrePasajero, nombreConductor, contexto);
 
         System.out.println();
 
         // --------------------------------------------------
-        // PASO 6: State — iniciar el viaje (cambia estado a EnCamino + notifica)
+        // PASO 8: Menú de acciones
         // --------------------------------------------------
-        System.out.println("[App] Iniciando el viaje...");
-        contexto.iniciarViaje();
+        boolean corriendo = true;
+        while (corriendo) {
+            System.out.println("--- Acciones disponibles ---");
+            System.out.println("1. Iniciar viaje");
+            System.out.println("2. Finalizar viaje");
+            System.out.println("3. Cancelar viaje");
+            System.out.println("4. Ver estado actual");
+            System.out.println("0. Salir");
+            System.out.print("Selecciona una opción: ");
 
-        System.out.println();
+            String opcion = scanner.nextLine().trim();
 
-        // --------------------------------------------------
-        // PASO 7: State — finalizar el viaje (cambia estado a Finalizado + notifica)
-        // --------------------------------------------------
-        System.out.println("[App] Finalizando el viaje...");
-        contexto.finalizarViaje();
-
-        System.out.println();
+            switch (opcion) {
+                case "1":
+                    contexto.iniciarViaje();
+                    break;
+                case "2":
+                    contexto.finalizarViaje();
+                    break;
+                case "3":
+                    contexto.cancelarViaje();
+                    break;
+                case "4":
+                    System.out.println("[App] Estado actual: "
+                            + contexto.getEstado().getNombre());
+                    break;
+                case "0":
+                    corriendo = false;
+                    break;
+                default:
+                    System.out.println("Opción inválida.");
+            }
+            System.out.println();
+        }
 
         // --------------------------------------------------
         // RESULTADO FINAL
         // --------------------------------------------------
         System.out.println("============================================");
-        System.out.println("[App] Estado final del viaje: " + contexto.getEstado().getNombre());
+        System.out.println("[App] Estado final: " + contexto.getEstado().getNombre());
+        System.out.println("[App] Viaje: " + viaje.toString());
         System.out.println("============================================");
+    }
+
+    // Método auxiliar para preguntas s/n
+    private boolean pedirOpcion(String pregunta) {
+        System.out.print(pregunta);
+        String resp = scanner.nextLine().trim().toLowerCase();
+        return resp.equals("s") || resp.equals("si") || resp.equals("sí");
     }
 }
