@@ -1,12 +1,10 @@
 package state;
 
-// Estado: el viaje fue cancelado, no se puede hacer nada
 public class EstadoCancelado implements EstadoViaje {
 
-    private ViajeContexto contexto;
-
+    // contexto eliminado — este estado no hace transiciones
     public EstadoCancelado(ViajeContexto contexto) {
-        this.contexto = contexto;
+        // estado terminal, no necesita referencia al contexto
     }
 
     @Override
@@ -25,5 +23,7 @@ public class EstadoCancelado implements EstadoViaje {
     }
 
     @Override
-    public String getNombre() { return "Cancelado"; }
+    public String getNombre() {
+        return "Cancelado";
+    }
 }

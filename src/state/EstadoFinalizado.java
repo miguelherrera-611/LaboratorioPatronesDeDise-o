@@ -1,12 +1,10 @@
 package state;
 
-// Estado final: el viaje terminó, no se puede hacer nada más
 public class EstadoFinalizado implements EstadoViaje {
 
-    private ViajeContexto contexto;
-
+    // contexto eliminado — este estado no hace transiciones
     public EstadoFinalizado(ViajeContexto contexto) {
-        this.contexto = contexto;
+        // estado terminal, no necesita referencia al contexto
     }
 
     @Override
@@ -25,5 +23,7 @@ public class EstadoFinalizado implements EstadoViaje {
     }
 
     @Override
-    public String getNombre() { return "Finalizado"; }
+    public String getNombre() {
+        return "Finalizado";
+    }
 }
