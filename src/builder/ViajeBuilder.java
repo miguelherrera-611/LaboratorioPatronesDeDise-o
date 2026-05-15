@@ -8,18 +8,16 @@ import model.Viaje;
 // Solución: Builder permite configurar paso a paso de forma legible
 public class ViajeBuilder {
 
-    private Viaje viaje; // El viaje que vamos construyendo
+    private Viaje viaje;
 
-    // Constructor: recibe el viaje ya creado por Factory y lo va a configurar
     public ViajeBuilder(Viaje viaje) {
         this.viaje = viaje;
-        System.out.println("[Builder] Iniciando configuración del viaje...");
+        System.out.println("[Builder] Configurando viaje...");
     }
 
-    // Cada método configura una opción y devuelve "this" para poder encadenar llamadas
     public ViajeBuilder setWifi(boolean wifi) {
         this.viaje.setWifi(wifi);
-        return this; // permite encadenar: .setWifi(true).setMascota(false)
+        return this;
     }
 
     public ViajeBuilder setMascota(boolean mascota) {
@@ -47,7 +45,6 @@ public class ViajeBuilder {
         return this;
     }
 
-    // build() es el último paso: termina la configuración y devuelve el viaje listo
     public Viaje build() {
         System.out.println("[Builder] Viaje configurado: " + viaje);
         return viaje;

@@ -1,7 +1,5 @@
 package state;
 
-// Estado: el conductor está llevando al pasajero
-// Solo se puede finalizar el viaje
 public class EstadoEnCamino implements EstadoViaje {
 
     private ViajeContexto contexto;
